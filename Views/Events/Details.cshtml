@@ -1,0 +1,43 @@
+@model CampusEvents.Models.Event
+
+@{
+	ViewData["Title"] = Model.Title;
+}
+
+<article>
+	<header>
+		<h1>@Model.Title</h1>
+	</header>
+
+	<p>@Model.Description</p>
+
+	<dl>
+		<dt>Category</dt>
+		<dd>@Model.Category.Name</dd>
+
+		<dt>Location</dt>
+		<dd>@Model.Location</dd>
+
+		<dt>Starts</dt>
+		<dd><time>@Model.StartDateTime.ToString("f")</time></dd>
+
+		<dt>Ends</dt>
+		<dd><time>@Model.EndDateTime.ToString("f")</time></dd>
+
+		<dt>Organizer</dt>
+		<dd>@Model.Organizer.DisplayName</dd>
+
+		<dt>Configured capacity</dt>
+		<dd>@Model.Capacity</dd>
+
+		<dt>Current registration availability</dt>
+		<dd>
+			Live availability is not available yet because Registration data
+			has not been introduced.
+		</dd>
+	</dl>
+</article>
+
+<p>
+	<a asp-controller="Events" asp-action="Index">Back to Events</a>
+</p>

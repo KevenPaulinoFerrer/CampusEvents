@@ -1,18 +1,30 @@
-@model string
+@model System.Collections.Generic.IReadOnlyList<CampusEvents.Models.Event>
 
 @{
     ViewData["Title"] = "Events";
 }
 
-<h1>Campus Events</h1>
+<h1>Upcoming Campus Events</h1>
 
-<p>
-    This is the first CEMS Events page. Event information is temporary in
-    Lesson 1 and is not loaded from a database.
-</p>
+<section aria-labelledby="event-list-heading">
+    <h2 id="event-list-heading" class="visually-hidden">Published upcoming events</h2>
 
-<section>
-    <h2>Temporary Event Preview</h2>
-    <p><strong>@Model</strong></p>
-    <p>Student Center</p>
+    @foreach (var eventItem in Model)
+    {
+        <article>
+            <h3>
+                <a asp-controller="Events" asp-action="Details" asp-route-id="@eventItem.Id">
+                    @eventItem.Title
+                </a>
+            </h3>
+
+
+            <p><strong>Category:</strong> @eventItem.Category.Name</p>
+            <p><strong>Location:</strong> @eventItem.Location</p>
+            <p>
+                <strong>Starts:</strong>
+                <time>@eventItem.StartDateTime.ToString("f")</time>
+            </p>
+        </article>
+    }
 </section>
