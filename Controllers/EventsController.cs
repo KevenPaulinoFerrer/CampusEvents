@@ -1,9 +1,11 @@
 using CampusEvents.Data;
 using CampusEvents.Models;
+using CampusEvents.ViewModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System.Linq;
 
 namespace CampusEvents.Controllers;
 
@@ -11,6 +13,7 @@ public class EventsController : Controller
 {
 	private readonly ILogger<EventsController> _logger;
 	private readonly ApplicationDbContext _context;
+	private const int PublicPageSize = 10;
 
 	public EventsController(
 		ILogger<EventsController> logger,
@@ -20,22 +23,83 @@ public class EventsController : Controller
 		_context = context;
 	}
 
-	public async Task<IActionResult> Index()
+	public async Task<IActionResult> Index(
+		string? search,
+		int? categoryId,
+		int? page)
 	{
-		_logger.LogInformation("Loading Published upcoming CEMS events.");
+		_logger.LogInformation(
+			"Loading Published upcoming CEMS events with public filters and paging.");
 
 		var now = DateTime.Now;
 
-		var events = await _context.Events
+		IQueryable<Event> query = _context.Events
 			.AsNoTracking()
 			.Include(eventItem => eventItem.Category)
 			.Where(eventItem =>
 				eventItem.Status == EventStatus.Published &&
-				eventItem.StartDateTime > now)
+				eventItem.StartDateTime > now);
+
+		if (!string.IsNullOrWhiteSpace(search))
+		{
+			var searchTerm = search.Trim();
+
+			query = query.Where(eventItem =>
+				eventItem.Title.Contains(searchTerm) ||
+				eventItem.Location.Contains(searchTerm));
+		}
+
+		if (categoryId.HasValue)
+		{
+			query = query.Where(eventItem =>
+				eventItem.CategoryId == categoryId.Value);
+		}
+
+		var totalCount = await query.CountAsync();
+		var totalPages = (int)Math.Ceiling(totalCount / (double)PublicPageSize);
+
+		var currentPage = page.GetValueOrDefault(1);
+
+		if (currentPage < 1)
+		{
+			currentPage = 1;
+		}
+
+		if (totalPages > 0 && currentPage > totalPages)
+		{
+			currentPage = totalPages;
+		}
+
+		if (totalPages == 0)
+		{
+			currentPage = 1;
+		}
+
+		var events = await query
 			.OrderBy(eventItem => eventItem.StartDateTime)
+			.ThenBy(eventItem => eventItem.Id)
+			.Skip((currentPage - 1) * PublicPageSize)
+			.Take(PublicPageSize)
 			.ToListAsync();
 
-		return View(events);
+		var categories = await _context.Categories
+			.AsNoTracking()
+			.OrderBy(category => category.Name)
+			.ToListAsync();
+
+		var viewModel = new EventSearchViewModel
+		{
+			Events = events,
+			Categories = categories,
+			Search = search,
+			CategoryId = categoryId,
+			CurrentPage = currentPage,
+			PageSize = PublicPageSize,
+			TotalCount = totalCount,
+			TotalPages = totalPages
+		};
+
+		return View(viewModel);
 	}
 
 	public async Task<IActionResult> Details(int id)

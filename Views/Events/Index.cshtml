@@ -1,4 +1,4 @@
-@model System.Collections.Generic.IReadOnlyList<CampusEvents.Models.Event>
+@model CampusEvents.ViewModels.EventSearchViewModel
 
 @{
     ViewData["Title"] = "Events";
@@ -6,25 +6,112 @@
 
 <h1>Upcoming Campus Events</h1>
 
-<section aria-labelledby="event-list-heading">
-    <h2 id="event-list-heading" class="visually-hidden">Published upcoming events</h2>
+<form asp-controller="Events" asp-action="Index" method="get" class="event-filter-form"
+      aria-label="Search and filter campus events">
 
-    @foreach (var eventItem in Model)
+    <div class="event-filter-field">
+        <label for="search" class="event-filter-label">Search title or location</label>
+        <input id="search" name="search" type="search" class="event-filter-control" value="@Model.Search"
+               aria-describedby="searchHelp" />
+        <div id="searchHelp" class="event-filter-help">
+            Matches Event title or location.
+        </div>
+    </div>
+
+    <div class="event-filter-field">
+        <label for="categoryId" class="event-filter-label">Category</label>
+        <select id="categoryId" name="categoryId" class="event-filter-control">
+            <option value="">All categories</option>
+
+            @foreach (var category in Model.Categories)
+            {
+                if (Model.CategoryId == category.Id)
+                {
+                    <option value="@category.Id" selected>@category.Name</option>
+                }
+                else
+                {
+                    <option value="@category.Id">@category.Name</option>
+                }
+            }
+        </select>
+    </div>
+
+    <div class="event-filter-actions">
+        <button type="submit" class="event-filter-submit">
+            Apply filters
+        </button>
+
+        <a asp-controller="Events" asp-action="Index" class="event-filter-clear">
+            Clear
+        </a>
+    </div>
+</form>
+
+@if (Model.TotalCount > 0)
+{
+    var firstResult = (Model.CurrentPage - 1) * Model.PageSize + 1;
+    var lastResult = firstResult + Model.Events.Count - 1;
+
+    <p class="event-result-count">
+        Showing @firstResult–@lastResult of @Model.TotalCount events.
+    </p>
+}
+
+@if (Model.Events.Count == 0)
+{
+    <p role="status">
+        No published upcoming events match your current criteria.
+    </p>
+}
+else
+{
+    <section aria-labelledby="event-list-heading">
+        <h2 id="event-list-heading" class="cems-visually-hidden">
+            Published upcoming events
+        </h2>
+
+        @foreach (var eventItem in Model.Events)
+        {
+            <article class="event-card">
+                <h3 class="event-card-title">
+                    <a asp-controller="Events" asp-action="Details" asp-route-id="@eventItem.Id">
+                        @eventItem.Title
+                    </a>
+                </h3>
+
+                <p><strong>Category:</strong> @eventItem.Category.Name</p>
+                <p><strong>Location:</strong> @eventItem.Location</p>
+                <p>
+                    <strong>Starts:</strong>
+                    <time>@eventItem.StartDateTime.ToString("f")</time>
+                </p>
+            </article>
+        }
+    </section>
+
+    <p class="event-page-status">
+        Page @Model.CurrentPage of @Model.TotalPages
+    </p>
+
+    @if (Model.TotalPages > 1)
     {
-        <article>
-            <h3>
-                <a asp-controller="Events" asp-action="Details" asp-route-id="@eventItem.Id">
-                    @eventItem.Title
-                </a>
-            </h3>
+        <nav class="event-pagination" aria-label="Event results pages">
+            <div class="event-pagination-actions">
+                @if (Model.CurrentPage > 1)
+                {
+                    <a asp-controller="Events" asp-action="Index" asp-route-search="@Model.Search"
+                       asp-route-categoryId="@Model.CategoryId" asp-route-page="@(Model.CurrentPage - 1)" class="event-page-link"
+                       rel="prev">Previous</a>
+                }
 
-
-            <p><strong>Category:</strong> @eventItem.Category.Name</p>
-            <p><strong>Location:</strong> @eventItem.Location</p>
-            <p>
-                <strong>Starts:</strong>
-                <time>@eventItem.StartDateTime.ToString("f")</time>
-            </p>
-        </article>
+                @if (Model.CurrentPage < Model.TotalPages)
+                {
+                    <a asp-controller="Events" asp-action="Index" asp-route-search="@Model.Search"
+                       asp-route-categoryId="@Model.CategoryId" asp-route-page="@(Model.CurrentPage + 1)" class="event-page-link"
+                       rel="next">Next</a>
+                }
+            </div>
+        </nav>
     }
-</section>
+}
