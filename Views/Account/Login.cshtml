@@ -1,0 +1,30 @@
+@model CampusEvents.ViewModels.LoginViewModel
+
+@{
+    ViewData["Title"] = "Login";
+}
+
+<h1>Login</h1>
+
+<form asp-controller="Account" asp-action="Login" method="post" asp-antiforgery="true" class="account-form">
+
+    <input asp-for="ReturnUrl" type="hidden" />
+
+    <div asp-validation-summary="ModelOnly" class="validation-summary" role="alert"></div>
+
+    <div class="form-field">
+        <label asp-for="Email" class="field-label"></label>
+        <input asp-for="Email" class="field-control" autocomplete="email" required />
+        <span asp-validation-for="Email" class="validation-message"></span>
+    </div>
+
+    <div class="form-field">
+        <label asp-for="Password" class="field-label"></label>
+        <input asp-for="Password" class="field-control" autocomplete="current-password" required />
+        <span asp-validation-for="Password" class="validation-message"></span>
+    </div>
+
+    <button type="submit" class="button-primary">
+        Login
+    </button>
+</form>

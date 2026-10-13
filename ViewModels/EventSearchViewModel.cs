@@ -18,6 +18,8 @@ public class EventSearchViewModel
 
 	public int PageSize { get; set; }
 
+	public IReadOnlyList<int> PageSizeOptions { get; set; } = Array.Empty<int>();
+
 	public int TotalCount { get; set; }
 
 	public int TotalPages { get; set; }

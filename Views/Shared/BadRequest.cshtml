@@ -1,0 +1,14 @@
+@model CampusEvents.ViewModels.ErrorPageViewModel
+
+@{
+    ViewData["Title"] = Model.Title;
+}
+
+<h1>@Model.Title</h1>
+
+<p role="alert">@Model.Message</p>
+
+@if (!string.IsNullOrWhiteSpace(Model.ReturnUrl))
+{
+    <a href="@Model.ReturnUrl">@Model.ReturnLabel</a>
+}

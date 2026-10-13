@@ -13,24 +13,43 @@ public class EventsController : Controller
 {
 	private readonly ILogger<EventsController> _logger;
 	private readonly ApplicationDbContext _context;
-	private const int PublicPageSize = 10;
+	private const int DefaultPageSize = 10;
 
-	public EventsController(
-		ILogger<EventsController> logger,
-		ApplicationDbContext context)
+	private static readonly int[] AllowedPageSizes =
+	{
+		10,
+		25,
+		50
+	};
+
+	public EventsController(ILogger<EventsController> logger, ApplicationDbContext context)
 	{
 		_logger = logger;
 		_context = context;
 	}
 
-	public async Task<IActionResult> Index(
-		string? search,
-		int? categoryId,
-		int? page)
+	public async Task<IActionResult> Index(string? search, int? categoryId, int? page, int? pageSize)
 	{
-		_logger.LogInformation(
-			"Loading Published upcoming CEMS events with public filters and paging.");
+		_logger.LogInformation("Loading Published upcoming CEMS events with public filters and paging.");
 
+		var pageSizeWasSupplied = Request.Query.ContainsKey(nameof(pageSize));
+
+		if (pageSizeWasSupplied && (!pageSize.HasValue || !AllowedPageSizes.Contains(pageSize.Value)))
+		{
+			var errorViewModel = new ErrorPageViewModel
+			{
+				Title = "Invalid Page Size",
+				Message = "Choose a page size of 10, 25, or 50.",
+				ReturnUrl = Url.Action("Index", "Events"),
+				ReturnLabel = "Return to Events"
+			};
+
+			Response.StatusCode = StatusCodes.Status400BadRequest;
+
+			return View("BadRequest", errorViewModel);
+		}
+
+		var currentPageSize = pageSize.GetValueOrDefault(DefaultPageSize);
 		var now = DateTime.Now;
 
 		IQueryable<Event> query = _context.Events
@@ -56,7 +75,7 @@ public class EventsController : Controller
 		}
 
 		var totalCount = await query.CountAsync();
-		var totalPages = (int)Math.Ceiling(totalCount / (double)PublicPageSize);
+		var totalPages = (int)Math.Ceiling(totalCount / (double)currentPageSize);
 
 		var currentPage = page.GetValueOrDefault(1);
 
@@ -78,8 +97,8 @@ public class EventsController : Controller
 		var events = await query
 			.OrderBy(eventItem => eventItem.StartDateTime)
 			.ThenBy(eventItem => eventItem.Id)
-			.Skip((currentPage - 1) * PublicPageSize)
-			.Take(PublicPageSize)
+			.Skip((currentPage - 1) * currentPageSize)
+			.Take(currentPageSize)
 			.ToListAsync();
 
 		var categories = await _context.Categories
@@ -94,7 +113,8 @@ public class EventsController : Controller
 			Search = search,
 			CategoryId = categoryId,
 			CurrentPage = currentPage,
-			PageSize = PublicPageSize,
+			PageSize = currentPageSize,
+			PageSizeOptions = AllowedPageSizes,
 			TotalCount = totalCount,
 			TotalPages = totalPages
 		};

@@ -2,10 +2,12 @@ using CampusEvents.Data;
 using Microsoft.EntityFrameworkCore;
  using CampusEvents.Models;	
  using System.Collections.Generic;
+ using Microsoft.AspNetCore.Identity;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews();	
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
 	?? throw new InvalidOperationException(
@@ -13,6 +15,25 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 	options.UseSqlServer(connectionString));
+
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+{
+	options.User.RequireUniqueEmail = true;
+
+	options.Password.RequiredLength = 8;
+	options.Password.RequireDigit = true;
+	options.Password.RequireLowercase = true;
+	options.Password.RequireUppercase = true;
+	options.Password.RequireNonAlphanumeric = false;
+
+	options.SignIn.RequireConfirmedAccount = false;
+})
+.AddEntityFrameworkStores<ApplicationDbContext>();
+
+builder.Services.ConfigureApplicationCookie(options =>
+{
+	options.LoginPath = "/Account/Login";
+});
 
 var app = builder.Build();
 
@@ -27,6 +48,7 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllerRoute(
@@ -36,22 +58,15 @@ app.MapControllerRoute(
 if (app.Environment.IsDevelopment())
 {
 	using var scope = app.Services.CreateScope();
-	var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+	var services = scope.ServiceProvider;
+
+	var context = services.GetRequiredService<ApplicationDbContext>();
+
 	await DbInitializer.SeedAsync(context);
-	var academicId = await context.Categories
-	.Where(category => category.Name == "Academic")
-	.Select(category => category.Id)
-	.SingleAsync();
 
-	if (!await context.Events.AnyAsync(eventItem =>
-		eventItem.Title == "Pagination Practice Workshop 01"))
-	{
-		var createdAt = DateTime.Now;
-		var practiceEvents = new List<Event>();
-
-		await context.SaveChangesAsync();
-	}
-
+	await IdentitySeedData.SeedAsync(services, builder.Configuration);
 }
+
 
 app.Run();
