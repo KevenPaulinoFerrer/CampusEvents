@@ -1,0 +1,70 @@
+@model CampusEvents.ViewModels.EventInputModel
+
+@{
+    ViewData["Title"] = "Create Event";
+}
+
+<h1>Create Event</h1>
+
+<p>
+    New Events are saved as Draft and belong to your Organizer account.
+</p>
+
+<form asp-controller="Events" asp-action="Create" method="post" asp-antiforgery="true" class="event-form">
+
+    <div asp-validation-summary="All" class="validation-summary" role="alert"></div>
+
+    <div class="form-field">
+        <label asp-for="Title" class="field-label"></label>
+        <input asp-for="Title" class="field-control" required />
+        <span asp-validation-for="Title" class="validation-message"></span>
+    </div>
+
+    <div class="form-field">
+        <label asp-for="Description" class="field-label"></label>
+        <textarea asp-for="Description" class="field-control event-description" rows="6" required></textarea>
+        <span asp-validation-for="Description" class="validation-message"></span>
+    </div>
+
+    <div class="form-field">
+        <label asp-for="CategoryId" class="field-label"></label>
+        <select asp-for="CategoryId" asp-items="Model.CategoryOptions" class="field-control" required>
+            <option value="">Select a Category</option>
+        </select>
+        <span asp-validation-for="CategoryId" class="validation-message"></span>
+    </div>
+
+    <div class="form-field">
+        <label asp-for="Location" class="field-label"></label>
+        <input asp-for="Location" class="field-control" required />
+        <span asp-validation-for="Location" class="validation-message"></span>
+    </div>
+
+    <div class="form-field">
+        <label asp-for="StartDateTime" class="field-label"></label>
+        <input asp-for="StartDateTime" type="datetime-local" asp-format="{0:yyyy-MM-ddTHH:mm}" class="field-control"
+               required />
+        <span asp-validation-for="StartDateTime" class="validation-message"></span>
+    </div>
+
+    <div class="form-field">
+        <label asp-for="EndDateTime" class="field-label"></label>
+        <input asp-for="EndDateTime" type="datetime-local" asp-format="{0:yyyy-MM-ddTHH:mm}" class="field-control"
+               required />
+        <span asp-validation-for="EndDateTime" class="validation-message"></span>
+    </div>
+
+    <div class="form-field">
+        <label asp-for="Capacity" class="field-label"></label>
+        <input asp-for="Capacity" type="number" min="1" class="field-control" required />
+        <span asp-validation-for="Capacity" class="validation-message"></span>
+    </div>
+
+    <div class="form-actions">
+        <button type="submit" class="button-primary">Save Draft</button>
+
+        <a asp-controller="Events" asp-action="Manage" class="button-secondary">
+            Cancel
+        </a>
+    </div>
+</form>
