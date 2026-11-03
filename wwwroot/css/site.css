@@ -378,3 +378,46 @@ select:focus-visible {
   flex-wrap: wrap;
   gap: 0.75rem;
 }
+
+.status-message,
+.error-message {
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  border: 1px solid currentColor;
+  border-radius: 0.35rem;
+}
+
+.event-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.event-action-form {
+  margin: 0;
+}
+
+.button-danger {
+  display: inline-block;
+  border: 1px solid currentColor;
+  border-radius: 0.3rem;
+  padding: 0.55rem 0.85rem;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.button-danger:focus-visible,
+.button-primary:focus-visible,
+.button-secondary:focus-visible {
+  outline: 3px solid currentColor;
+  outline-offset: 2px;
+}
+
+.confirmation-panel {
+  max-width: 42rem;
+  padding: 1rem;
+  border: 1px solid currentColor;
+  border-radius: 0.35rem;
+}

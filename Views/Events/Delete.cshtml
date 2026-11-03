@@ -1,0 +1,41 @@
+@model CampusEvents.Models.Event
+
+@{
+    ViewData["Title"] = "Delete Draft Event";
+}
+
+<h1>Delete Draft Event</h1>
+<div class="confirmation-panel">
+    <p>
+        You are about to permanently delete this Draft Event.
+        This action removes the Event record and cannot be undone here.
+    </p>
+    <dl class="event-meta">
+        <div>
+            <dt>Title</dt>
+            <dd>@Model.Title</dd>
+        </div>
+        <div>
+            <dt>Status</dt>
+            <dd>@Model.Status</dd>
+        </div>
+        <div>
+            <dt>Category</dt>
+            <dd>@Model.Category.Name</dd>
+        </div>
+        <div>
+            <dt>Starts</dt>
+            <dd><time datetime="@Model.StartDateTime.ToString("yyyy-MM-ddTHH:mm:ss")">
+                @Model.StartDateTime.ToString("f")</time></dd>
+            </div>
+        </dl>
+        <div class="form-actions">
+            <form asp-controller="Events" asp-action="DeleteConfirmed" asp-route-id="@Model.Id" method="post"
+                  asp-antiforgery="true">
+                <button type="submit" class="button-danger">
+                    Permanently Delete Draft
+                </button>
+            </form>
+            <a asp-controller="Events" asp-action="Manage" class="button-secondary">Keep Event</a>
+        </div>
+    </div>

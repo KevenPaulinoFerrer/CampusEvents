@@ -1,28 +1,35 @@
 @using CampusEvents.Models
+@inject TimeProvider Clock
 @model IReadOnlyList<Event>
 
 @{
     ViewData["Title"] = "Manage Events";
+    var now = Clock.GetLocalNow().DateTime;
 }
 
 <header class="page-heading">
     <div>
         <h1>Manage My Events</h1>
-        <p>
-            View Events owned by your Organizer account.
-        </p>
+        <p>View and manage Events owned by your Organizer account.</p>
     </div>
-
-    <a asp-controller="Events" asp-action="Create" class="button-primary">
-        Create Event
-    </a>
+    <a asp-controller="Events" asp-action="Create" class="button-primary">Create Event</a>
 </header>
+
+@if (TempData["StatusMessage"] is string statusMessage)
+{
+    <p class="status-message" role="status">
+        <strong>Success:</strong> @statusMessage
+    </p>
+}
+
+@if (TempData["ErrorMessage"] is string errorMessage)
+{
+    <p class="error-message" role="alert">@errorMessage</p>
+}
 
 @if (Model.Count == 0)
 {
-    <p role="status">
-        You do not own any Events yet.
-    </p>
+    <p role="status">You do not own any Events yet.</p>
 }
 else
 {
@@ -32,17 +39,11 @@ else
             <article class="event-management-item">
                 <div>
                     <h2>@eventItem.Title</h2>
-
                     <dl class="event-meta">
                         <div>
                             <dt>Status</dt>
                             <dd>@eventItem.Status</dd>
                         </div>
-                        <div>
-                            <dt>Location</dt>
-                            <dd>@eventItem.Location</dd>
-                        </div>
-
                         <div>
                             <dt>Category</dt>
                             <dd>@eventItem.Category.Name</dd>
@@ -50,7 +51,7 @@ else
                         <div>
                             <dt>Starts</dt>
                             <dd>
-                                <time>
+                                <time datetime="@eventItem.StartDateTime.ToString("yyyy-MM-ddTHH:mm:ss")">
                                     @eventItem.StartDateTime.ToString("f")
                                 </time>
                             </dd>
@@ -61,14 +62,39 @@ else
                         </div>
                     </dl>
                 </div>
+                <div class="event-actions">
+                    @if (eventItem.Status == EventStatus.Draft)
+                    {
+                        <a asp-controller="Events" asp-action="Edit" asp-route-id="@eventItem.Id" class="button-secondary">Edit</a>
+                        @if (eventItem.StartDateTime > now)
+                        {
+                            <form asp-controller="Events" asp-action="Publish" asp-route-id="@eventItem.Id" method="post"
+                                  asp-antiforgery="true" class="event-action-form">
+                                <button type="submit" class="button-primary">Publish</button>
+                            </form>
+                        }
+                        <a asp-controller="Events" asp-action="Delete" asp-route-id="@eventItem.Id" class="button-danger">Delete
+                            Draft</a>
+                        }
 
-                @if (eventItem.Status == EventStatus.Draft)
-                {
-                    <a asp-controller="Events" asp-action="Edit" asp-route-id="@eventItem.Id" class="button-secondary">
-                        Edit
-                    </a>
-                }
-            </article>
-        }
-    </div>
-}
+                    else if (eventItem.Status == EventStatus.Published)
+                        {
+                            <a asp-action="Details" asp-route-id="@eventItem.Id" class="button-secondary">View Details</a>
+                            <a asp-controller="Events" asp-action="Edit" asp-route-id="@eventItem.Id" class="button-secondary">Edit</a>
+                            @if (eventItem.StartDateTime > now)
+                            {
+                                <form asp-controller="Events" asp-action="Cancel" asp-route-id="@eventItem.Id" method="post"
+                                      asp-antiforgery="true" class="event-action-form">
+                                    <button type="submit" class="button-danger">Cancel Event</button>
+                                </form>
+                            }
+                        }
+                        else if (eventItem.Status == EventStatus.Cancelled)
+                        {
+                            <a asp-action="Details" asp-route-id="@eventItem.Id" class="button-secondary">View Details</a>
+                        }
+                    </div>
+                </article>
+            }
+        </div>
+    }
