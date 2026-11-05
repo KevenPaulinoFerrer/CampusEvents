@@ -421,3 +421,17 @@ select:focus-visible {
   border: 1px solid currentColor;
   border-radius: 0.35rem;
 }
+.registration-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.registration-item {
+  padding: 1rem;
+  border: 1px solid currentColor;
+  border-radius: 0.35rem;
+}
+
+.registration-item h2 {
+  margin-top: 0;
+}

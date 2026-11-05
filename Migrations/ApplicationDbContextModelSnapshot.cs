@@ -164,6 +164,34 @@ namespace CampusEvents.Migrations
                         });
                 });
 
+            modelBuilder.Entity("CampusEvents.Models.Registration", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("EventId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EventId");
+
+                    b.HasIndex("UserId", "EventId")
+                        .IsUnique();
+
+                    b.ToTable("Registrations");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
                 {
                     b.Property<string>("Id")
@@ -316,6 +344,25 @@ namespace CampusEvents.Migrations
                     b.Navigation("Organizer");
                 });
 
+            modelBuilder.Entity("CampusEvents.Models.Registration", b =>
+                {
+                    b.HasOne("CampusEvents.Models.Event", "Event")
+                        .WithMany("Registrations")
+                        .HasForeignKey("EventId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CampusEvents.Models.ApplicationUser", "User")
+                        .WithMany("Registrations")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Event");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -370,11 +417,18 @@ namespace CampusEvents.Migrations
             modelBuilder.Entity("CampusEvents.Models.ApplicationUser", b =>
                 {
                     b.Navigation("OrganizedEvents");
+
+                    b.Navigation("Registrations");
                 });
 
             modelBuilder.Entity("CampusEvents.Models.Category", b =>
                 {
                     b.Navigation("Events");
+                });
+
+            modelBuilder.Entity("CampusEvents.Models.Event", b =>
+                {
+                    b.Navigation("Registrations");
                 });
 #pragma warning restore 612, 618
         }

@@ -14,11 +14,13 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 	public DbSet<Category> Categories => Set<Category>();
 
 	public DbSet<Event> Events => Set<Event>();
+	public DbSet<Registration> Registrations => Set<Registration>();
+
 
 	protected override void OnModelCreating(ModelBuilder modelBuilder)
 	{
 		base.OnModelCreating(modelBuilder);
-
+		
 		modelBuilder.Entity<ApplicationUser>(entity =>
 		{
 			entity.Property(user => user.DisplayName).IsRequired();
@@ -55,6 +57,18 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 					"CK_Events_CapacityPositive",
 					"[Capacity] > 0");
 			});
+		});
+		
+		modelBuilder.Entity<Registration>(entity =>
+		{
+			entity.HasOne(registration => registration.User).WithMany(user => user.Registrations)
+				.HasForeignKey(registration => registration.UserId).OnDelete(DeleteBehavior.Restrict);
+
+			entity.HasOne(registration => registration.Event).WithMany(eventItem => eventItem.Registrations)
+				.HasForeignKey(registration => registration.EventId).OnDelete(DeleteBehavior.Restrict);
+
+			entity.HasIndex(registration => registration.EventId);
+			entity.HasIndex(registration => new { registration.UserId, registration.EventId }).IsUnique();
 		});
 	}
 }

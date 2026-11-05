@@ -1,43 +1,144 @@
-@model CampusEvents.Models.Event
+@using CampusEvents.Models
+@inject TimeProvider Clock
+@model CampusEvents.ViewModels.EventDetailsViewModel
 
 @{
-	ViewData["Title"] = Model.Title;
+	ViewData["Title"] = Model.EventItem.Title;
+	var now = Clock.GetLocalNow().DateTime;
+	var detailsReturnUrl = Url.Action("Details", "Events", new { id = Model.EventItem.Id });
 }
 
-<article>
-	<header>
-		<h1>@Model.Title</h1>
-	</header>
+<h1>@Model.EventItem.Title</h1>
 
-	<p>@Model.Description</p>
+@if (TempData["StatusMessage"] is string statusMessage)
+{
+	<p class="status-message" role="status">
+		<strong>Success:</strong> @statusMessage
+	</p>
+}
 
-	<dl>
+@if (TempData["ErrorMessage"] is string errorMessage)
+{
+	<p class="error-message" role="alert">
+		@errorMessage
+	</p>
+}
+
+@if (Model.EventItem.Status == EventStatus.Cancelled)
+{
+	<p class="error-message" role="status">
+		This Event has been cancelled.
+	</p>
+}
+
+<dl class="event-meta">
+	<div>
+		<dt>Status</dt>
+		<dd>@Model.EventItem.Status</dd>
+	</div>
+	<div>
 		<dt>Category</dt>
-		<dd>@Model.Category.Name</dd>
-
+		<dd>@Model.EventItem.Category.Name</dd>
+	</div>
+	<div>
 		<dt>Location</dt>
-		<dd>@Model.Location</dd>
-
+		<dd>@Model.EventItem.Location</dd>
+	</div>
+	<div>
 		<dt>Starts</dt>
-		<dd><time>@Model.StartDateTime.ToString("f")</time></dd>
-
-		<dt>Ends</dt>
-		<dd><time>@Model.EndDateTime.ToString("f")</time></dd>
-
-		<dt>Organizer</dt>
-		<dd>@Model.Organizer.DisplayName</dd>
-
-		<dt>Configured capacity</dt>
-		<dd>@Model.Capacity</dd>
-
-		<dt>Current registration availability</dt>
 		<dd>
-			Live availability is not available yet because Registration data
-			has not been introduced.
+			<time datetime="@Model.EventItem.StartDateTime.ToString("yyyy-MM-ddTHH:mm:ss")">
+				@Model.EventItem.StartDateTime.ToString("f")
+			</time>
 		</dd>
-	</dl>
-</article>
+	</div>
+	<div>
+		<dt>Ends</dt>
+		<dd>
+			<time datetime="@Model.EventItem.EndDateTime.ToString("yyyy-MM-ddTHH:mm:ss")">
+				@Model.EventItem.EndDateTime.ToString("f")
+			</time>
+		</dd>
+	</div>
+	<div>
+		<dt>Organizer</dt>
+		<dd>@Model.EventItem.Organizer.DisplayName</dd>
+	</div>
+	<div>
+		<dt>Capacity</dt>
+		<dd>@Model.EventItem.Capacity</dd>
+	</div>
+	<div>
+		<dt>Current registrations</dt>
+		<dd>@Model.CurrentRegistrationCount</dd>
+	</div>
+	<div>
+		<dt>Remaining capacity</dt>
+		<dd>@Model.RemainingCapacity</dd>
+	</div>
+</dl>
+
+<section aria-labelledby="event-description-heading">
+	<h2 id="event-description-heading">Description</h2>
+	<p>@Model.EventItem.Description</p>
+</section>
+
+<section aria-labelledby="registration-heading">
+	<h2 id="registration-heading">Registration</h2>
+
+	@if (Model.EventItem.Status != EventStatus.Published)
+	{
+		<p>
+			Registration is unavailable because this Event
+			is not Published.
+		</p>
+	}
+	else if (Model.EventItem.StartDateTime <= now)
+	{
+		<p>
+			Registration is closed because this Event
+			has already started.
+		</p>
+	}
+	else if (Model.IsCurrentUserRegistered)
+	{
+		<p role="status">
+			You already have a current Registration
+			for this Event.
+		</p>
+
+		<a asp-controller="Registrations" asp-action="Mine" class="button-secondary">
+			View My Registrations
+		</a>
+	}
+	else if (Model.RemainingCapacity == 0)
+	{
+		<p role="status">
+			No places are currently available.
+		</p>
+	}
+	else if (User.Identity?.IsAuthenticated != true)
+	{
+		<p>
+			Log in before registering for this Event.
+		</p>
+
+		<a asp-controller="Account" asp-action="Login" asp-route-returnUrl="@detailsReturnUrl" class="button-primary">
+			Login to Register
+		</a>
+	}
+	else
+	{
+		<form asp-controller="Registrations" asp-action="Register" asp-route-id="@Model.EventItem.Id" method="post"
+			  asp-antiforgery="true">
+			<button type="submit" class="button-primary">Register</button>
+		</form>
+	}
+
+</section>
 
 <p>
-	<a asp-controller="Events" asp-action="Index">Back to Events</a>
+	<a asp-controller="Events" asp-action="Index">
+		Back to Events
+	</a>
 </p>

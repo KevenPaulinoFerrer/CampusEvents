@@ -1,0 +1,89 @@
+@inject TimeProvider Clock
+@model IReadOnlyList<CampusEvents.Models.Registration>
+
+@{
+    ViewData["Title"] = "My Registrations";
+    var now = Clock.GetLocalNow().DateTime;
+}
+
+<h1>My Registrations</h1>
+
+@if (TempData["StatusMessage"] is string statusMessage)
+{
+    <p class="status-message" role="status">
+        <strong>Success:</strong> @statusMessage
+    </p>
+}
+
+@if (TempData["ErrorMessage"] is string errorMessage)
+{
+    <p class="error-message" role="alert">
+        @errorMessage
+    </p>
+}
+
+@if (Model.Count == 0)
+{
+    <p role="status">
+        You do not currently have any Event Registrations.
+    </p>
+}
+else
+{
+    <div class="registration-list">
+        @foreach (var registration in Model)
+        {
+            <article class="registration-item">
+                <h2>@registration.Event.Title</h2>
+
+                <dl class="event-meta">
+                    <div>
+                        <dt>Status</dt>
+                        <dd>@registration.Event.Status</dd>
+                    </div>
+                    <div>
+                        <dt>Category</dt>
+                        <dd>@registration.Event.Category.Name</dd>
+                    </div>
+                    <div>
+                        <dt>Location</dt>
+                        <dd>@registration.Event.Location</dd>
+                    </div>
+                    <div>
+                        <dt>Starts</dt>
+                        <dd>
+                            <time datetime="@registration.Event.StartDateTime.ToString("yyyy-MM-ddTHH:mm:ss")">
+                                @registration.Event.StartDateTime.ToString("f")
+                            </time>
+                        </dd>
+                    </div>
+                    <div>
+                        <dt>Registered</dt>
+                        <dd>
+                            <time datetime="@registration.CreatedAt.ToString("yyyy-MM-ddTHH:mm:ss")">
+                                @registration.CreatedAt.ToString("f")
+                            </time>
+                        </dd>
+                    </div>
+                </dl>
+
+                <div class="event-actions">
+                    <a asp-controller="Events" asp-action="Details" asp-route-id="@registration.EventId"
+                       class="button-secondary">
+                        View Event
+                    </a>
+
+                    @if (registration.Event.StartDateTime > now)
+                    {
+                        <form asp-controller="Registrations" asp-action="Cancel" asp-route-id="@registration.Id" method="post"
+                              asp-antiforgery="true" class="event-action-form">
+                            <button type="submit" class="button-danger">
+                                Cancel My Registration
+                            </button>
+                        </form>
+                    }
+                </div>
+            </article>
+        }
+    </div>
+}

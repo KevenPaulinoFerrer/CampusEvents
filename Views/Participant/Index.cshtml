@@ -5,14 +5,16 @@
 <h1>Participant Area</h1>
 
 <p>
-    Signed in as <strong>@User.Identity?.Name</strong>.
+    You are authenticated and can use Participant
+    registration features.
 </p>
 
+<div class="event-actions">
+    <a asp-controller="Events" asp-action="Index" class="button-primary">
+        Browse Events
+    </a>
 
-<p>
-    You are authenticated and can access this protected page.
-</p>
-
-<p>
-    Event-registration features are not implemented yet.
-</p>
+    <a asp-controller="Registrations" asp-action="Mine" class="button-secondary">
+        My Registrations
+    </a>
+</div>

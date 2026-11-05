@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
  using CampusEvents.Models;	
  using System.Collections.Generic;
  using Microsoft.AspNetCore.Identity;
-
+ using CampusEvents.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,6 +34,9 @@ builder.Services.ConfigureApplicationCookie(options =>
 {
 	options.LoginPath = "/Account/Login";
 });
+
+builder.Services.AddScoped<RegistrationService>();
+
 
 var app = builder.Build();
 
